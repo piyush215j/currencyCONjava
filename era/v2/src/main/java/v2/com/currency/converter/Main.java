@@ -6,7 +6,6 @@ import v2.com.currency.converter.controller.CurrencyController;
 
 public class Main {
     public static void main(String[] args) {
-        // Create and show the GUI
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 CurrencyView view = new CurrencyView();
@@ -16,4 +15,4 @@ public class Main {
             }
         });
     }
-} 
+}

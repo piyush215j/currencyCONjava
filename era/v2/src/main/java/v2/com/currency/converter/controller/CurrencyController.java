@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import javax.swing.JOptionPane;
 
 public class CurrencyController {
     private CurrencyView view;
@@ -15,69 +14,92 @@ public class CurrencyController {
     public CurrencyController(CurrencyView view, CurrencyModel model) {
         this.view = view;
         this.model = model;
+        populateCurrencyOptions();
         initializeListeners();
-        updateExchangeRateDisplay();
+        updateRateLabel();
+    }
+
+    private void populateCurrencyOptions() {
+        view.populateCurrencies(model.getSupportedCurrencies());
     }
 
     private void initializeListeners() {
-        // INR to Dollar conversion
-        view.getInrButton().addActionListener(new ActionListener() {
+        view.getConvertButton().addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    double inr = Double.parseDouble(view.getInrField().getText());
-                    double dollar = model.convertINRToDollar(inr);
-                    view.getDollarField().setText(String.format("%.2f", dollar));
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(view.getFrame(),
-                        "Please enter a valid number for INR",
-                        "Invalid Input",
-                        JOptionPane.ERROR_MESSAGE);
-                }
+                handleConversion();
             }
         });
 
-        // Dollar to INR conversion
-        view.getDollarButton().addActionListener(new ActionListener() {
+        ActionListener comboBoxListener = new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    double dollar = Double.parseDouble(view.getDollarField().getText());
-                    double inr = model.convertDollarToINR(dollar);
-                    view.getInrField().setText(String.format("%.2f", inr));
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(view.getFrame(),
-                        "Please enter a valid number for USD",
-                        "Invalid Input",
-                        JOptionPane.ERROR_MESSAGE);
-                }
+                updateRateLabel();
             }
-        });
+        };
+        view.getCurrencyCombo1().addActionListener(comboBoxListener);
+        view.getCurrencyCombo2().addActionListener(comboBoxListener);
 
-        // Refresh button
         view.getRefreshButton().addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 model.refreshExchangeRate();
-                updateExchangeRateDisplay();
+                populateCurrencyOptions();
+                updateRateLabel();
+                view.setResultAmount(0);
+                view.getAmountField1().setText("0");
             }
         });
 
-        // Close button
         view.getCloseButton().addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 view.getFrame().dispose();
+                System.exit(0);
             }
         });
 
-        // Window close
-        view.getFrame().addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                System.exit(0);
+        view.getAmountField1().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleConversion();
             }
         });
     }
 
-    private void updateExchangeRateDisplay() {
-        // This will be implemented in the model class
-        // For now, we'll just show a loading message
-        view.updateExchangeRate(model.convertDollarToINR(1));
+    private void handleConversion() {
+        String fromCurrency = view.getSelectedCurrency1();
+        String toCurrency = view.getSelectedCurrency2();
+        double amount = view.getInputAmount();
+
+        if (fromCurrency == null || toCurrency == null) {
+            view.showError("Please select both 'From' and 'To' currencies.");
+            return;
+        }
+
+        if (Double.isNaN(amount)) {
+            return;
+        }
+
+        double result = model.convert(amount, fromCurrency, toCurrency);
+
+        if (Double.isNaN(result)) {
+            view.showError("Conversion failed. Check if rates are available.");
+        }
+
+        view.setResultAmount(result);
+        updateRateLabel();
+    }
+
+    private void updateRateLabel() {
+        String fromCurrency = view.getSelectedCurrency1();
+        String toCurrency = view.getSelectedCurrency2();
+
+        if (fromCurrency != null && toCurrency != null) {
+            double rate = model.getExchangeRate(fromCurrency, toCurrency);
+            view.updateExchangeRateLabel(fromCurrency, toCurrency, rate);
+        } else {
+            view.updateExchangeRateLabel("?", "?", Double.NaN);
+        }
     }
 } 
