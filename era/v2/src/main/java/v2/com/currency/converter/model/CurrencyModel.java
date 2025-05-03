@@ -49,7 +49,7 @@ public class CurrencyModel {
     }
     
     public double convertINRToDollar(double inr) {
-        return Math.floor(inr / exchangeRate);
+        return inr / exchangeRate;
     }
     
     public double convertDollarToINR(double dollar) {
