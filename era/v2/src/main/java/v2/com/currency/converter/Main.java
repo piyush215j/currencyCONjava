@@ -1,5 +1,4 @@
 package v2.com.currency.converter;
-
 import v2.com.currency.converter.view.CurrencyView;
 import v2.com.currency.converter.model.CurrencyModel;
 import v2.com.currency.converter.controller.CurrencyController;

@@ -102,4 +102,4 @@ public class CurrencyController {
             view.updateExchangeRateLabel("?", "?", Double.NaN);
         }
     }
-} 
+}
